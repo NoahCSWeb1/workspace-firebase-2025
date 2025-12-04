@@ -63,11 +63,11 @@
         </div>
 
     <!-- Insert this script at the bottom of the HTML, but before you use any Firebase services -->
-    <script type="module">
+        <script type="module">
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
       // Add Firebase products that you want to use
       import { getAuth } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
-      import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js';
+      import { getFirestore, collection, onSnapshot, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js';
 
       /* Change the configuration */
 
@@ -82,9 +82,39 @@
       // Initialize Firebase
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const quancollection = collection(db, 'inventory');
 
+      const itemnames = document.querySelectorAll('.menu-item h3');
+      const quantityE = document.querySelectorAll('.menu-item p span');
+      const buttonE = document.querySelectorAll('.menu-item button');
 
+      onSnapshot(quancollection, (snapshot) => {
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          console.log(data);
+          for (let i = 0; i < itemnames.length; i++) {
+            const name = itemnames[i].textContent;
 
+            if (data[name] !== undefined) {
+              console.log(name + '' + data[name]);
+              quantityE[i].innerText = data[name];
+            }
+          }
+        });
+      });
+
+      const handleevent = async (e) => {
+        const itemname = e.target.parentElement.querySelector('h3').textContent;
+        const itemSpan = e.target.parentElement.querySelector('p span');
+        const itemquantity = parseInt(itemSpan.textContent, 10) - 1;
+        console.log(itemname + '' + itemquantity);
+        await updateDoc(doc(quancollection, 'inventoryList'), { [itemname]: itemquantity });
+      };
+
+      buttonE.forEach((button) => {
+        button.addEventListener('click', handleevent);
+      });
     </script>
+
   </body>
 </html>
